@@ -1,12 +1,38 @@
+// app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+type HistoryItem = {
+  id: string;
+  idea: string;
+  prompt: string;
+  timestamp: number;
+};
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<"home" | "history">("home");
   const [idea, setIdea] = useState("");
-  const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("promptDostHistory");
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse history");
+      }
+    }
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("promptDostHistory", JSON.stringify(history));
+  }, [history]);
 
   const generatePrompt = async () => {
     if (!idea.trim()) {
@@ -15,7 +41,6 @@ export default function Home() {
     }
     setError("");
     setLoading(true);
-    setPrompt("");
 
     try {
       const res = await fetch("/api/generate", {
@@ -23,107 +48,267 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           idea: idea.trim(),
-          referer: window.location.origin
-        })
+          referer: window.location.origin,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setPrompt(data.prompt);
+        const newItem: HistoryItem = {
+          id: Date.now().toString(),
+          idea: idea.trim(),
+          prompt: data.prompt,
+          timestamp: Date.now(),
+        };
+        setHistory((prev) => [newItem, ...prev]);
+        setIdea("");
       } else {
         setError(data.error || "कुछ गड़बड़ हुई।");
       }
     } catch (err) {
-      setError("नेटवर्क त्रुटि। कृपया इंटरनेट चेक करें।");
+      setError("नेटवर्क त्रुटि। इंटरनेट चेक करें।");
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = () => {
-    if (prompt) {
-      navigator.clipboard.writeText(prompt);
-      alert("प्रॉम्प्ट कॉपी हो गया!");
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert("प्रॉम्प्ट कॉपी हो गया!");
+  };
+
+  const clearHistory = () => {
+    if (confirm("क्या आप पूरा इतिहास मिटाना चाहते हैं?")) {
+      setHistory([]);
+      localStorage.removeItem("promptDostHistory");
     }
   };
 
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString("hi-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "short",
+    });
+  };
+
   return (
-    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
-      <h1 style={{ color: "#4F46E5", fontSize: "2.2rem" }}>✨ PromptDost</h1>
-      <p>अपना साधारण विचार लिखें — हम बना देंगे <strong>AI के लिए परफेक्ट प्रॉम्प्ट</strong>!</p>
-
-      <textarea
-        value={idea}
-        onChange={(e) => setIdea(e.target.value)}
-        placeholder="उदाहरण: मुझे एक एक्सपेंस ट्रैकर ऐप का Play Store डिस्क्रिप्शन चाहिए"
+    <div
+      style={{
+        fontFamily: "system-ui, sans-serif",
+        background: "linear-gradient(to bottom, #f0f9ff, #e0f2fe)",
+        minHeight: "100vh",
+        paddingBottom: "70px",
+        color: "#1e293b",
+      }}
+    >
+      {/* Header */}
+      <header
         style={{
-          width: "100%",
-          height: "100px",
-          marginTop: "1rem",
-          padding: "12px",
-          borderRadius: "8px",
-          border: "1px solid #ddd",
-          fontSize: "16px"
-        }}
-      />
-
-      {error && <p style={{ color: "red", marginTop: "8px" }}>{error}</p>}
-
-      <button
-        onClick={generatePrompt}
-        disabled={loading}
-        style={{
-          marginTop: "1rem",
-          padding: "12px 24px",
-          fontSize: "16px",
-          backgroundColor: loading ? "#ccc" : "#4F46E5",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: loading ? "not-allowed" : "pointer"
+          textAlign: "center",
+          padding: "1.5rem 1rem 1rem",
+          background: "white",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
         }}
       >
-        {loading ? "बना रहा है... 🤖" : "प्रॉम्प्ट बनाएं"}
-      </button>
+        <h1 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#4f46e5", margin: 0 }}>
+          ✨ PromptDost
+        </h1>
+        <p style={{ color: "#64748b", marginTop: "0.25rem" }}>
+          AI के लिए परफेक्ट प्रॉम्प्ट बनाएं
+        </p>
+      </header>
 
-      {prompt && (
-        <div style={{ marginTop: "2rem" }}>
-          <h3>आपका ऑप्टिमाइज़्ड प्रॉम्प्ट:</h3>
-          <pre
-            style={{
-              background: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              fontSize: "15px",
-              lineHeight: 1.5
-            }}
-          >
-            {prompt}
-          </pre>
-          <button
-            onClick={copyToClipboard}
-            style={{
-              marginTop: "12px",
-              padding: "8px 16px",
-              backgroundColor: "#10B981",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer"
-            }}
-          >
-            कॉपी करें ✅
-          </button>
-        </div>
-      )}
+      {/* Main Content */}
+      <main style={{ padding: "1rem", maxWidth: "600px", margin: "0 auto" }}>
+        {activeTab === "home" && (
+          <div>
+            <textarea
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="जैसे: मुझे UPSC के लिए नोट्स चाहिए"
+              style={{
+                width: "100%",
+                height: "120px",
+                padding: "14px",
+                borderRadius: "16px",
+                border: "1px solid #cbd5e1",
+                fontSize: "16px",
+                resize: "none",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+              }}
+            />
+            {error && <p style={{ color: "red", marginTop: "8px", fontSize: "14px" }}>{error}</p>}
+            <button
+              onClick={generatePrompt}
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "14px",
+                marginTop: "1rem",
+                background: loading ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #4f46e5)",
+                color: "white",
+                border: "none",
+                borderRadius: "16px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
+              }}
+            >
+              {loading ? "बना रहा है... 🤖" : "प्रॉम्प्ट बनाएं"}
+            </button>
+          </div>
+        )}
 
-      <footer style={{ marginTop: "3rem", fontSize: "14px", color: "#6b7280" }}>
-        <p>Powered by OpenRouter • सभी मॉडल्स फ्री टियर पर चलते हैं</p>
-      </footer>
+        {activeTab === "history" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h2 style={{ fontSize: "1.4rem", margin: 0 }}>इतिहास</h2>
+              {history.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#ef4444",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  साफ़ करें
+                </button>
+              )}
+            </div>
+            {history.length === 0 ? (
+              <p style={{ textAlign: "center", color: "#94a3b8", marginTop: "2rem" }}>
+                अभी तक कोई इतिहास नहीं है।
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {history.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      background: "white",
+                      borderRadius: "16px",
+                      padding: "16px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      border: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <div style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "8px" }}>
+                      {formatDate(item.timestamp)} • विचार: {item.idea}
+                    </div>
+                    <pre
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontSize: "15px",
+                        margin: "8px 0",
+                        lineHeight: 1.5,
+                        background: "#f8fafc",
+                        padding: "10px",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      {item.prompt}
+                    </pre>
+                    <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                      <button
+                        onClick={() => copyToClipboard(item.prompt)}
+                        style={{
+                          flex: 1,
+                          padding: "8px",
+                          background: "#f1f5f9",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        कॉपी ✅
+                      </button>
+                      <button
+                        onClick={() => {
+                          // WhatsApp share
+                          const text = encodeURIComponent(item.prompt);
+                          window.open(`https://wa.me/?text=${text}`, "_blank");
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: "8px",
+                          background: "#dcfce7",
+                          border: "1px solid #bbf7d0",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        शेयर 📲
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "white",
+          display: "flex",
+          justifyContent: "space-around",
+          padding: "12px 0",
+          borderTop: "1px solid #e2e8f0",
+          boxShadow: "0 -2px 10px rgba(0,0,0,0.05)",
+        }}
+      >
+        <button
+          onClick={() => setActiveTab("home")}
+          style={{
+            background: "none",
+            border: "none",
+            color: activeTab === "home" ? "#4f46e5" : "#94a3b8",
+            fontSize: "14px",
+            fontWeight: activeTab === "home" ? "600" : "normal",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          <span>🏠</span>
+          <span>होम</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("history")}
+          style={{
+            background: "none",
+            border: "none",
+            color: activeTab === "history" ? "#4f46e5" : "#94a3b8",
+            fontSize: "14px",
+            fontWeight: activeTab === "history" ? "600" : "normal",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          <span>🕒</span>
+          <span>इतिहास</span>
+        </button>
+      </nav>
     </div>
   );
-        }
+                         }
