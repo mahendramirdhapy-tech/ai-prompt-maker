@@ -13,11 +13,12 @@ type HistoryItem = {
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"home" | "history">("home");
   const [idea, setIdea] = useState("");
+  const [latestPrompt, setLatestPrompt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  // Load history from localStorage on mount
+  // Load history from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("promptDostHistory");
     if (saved) {
@@ -29,7 +30,7 @@ export default function Home() {
     }
   }, []);
 
-  // Save history to localStorage whenever it changes
+  // Save history to localStorage
   useEffect(() => {
     localStorage.setItem("promptDostHistory", JSON.stringify(history));
   }, [history]);
@@ -41,6 +42,7 @@ export default function Home() {
     }
     setError("");
     setLoading(true);
+    setLatestPrompt(null);
 
     try {
       const res = await fetch("/api/generate", {
@@ -61,7 +63,9 @@ export default function Home() {
           prompt: data.prompt,
           timestamp: Date.now(),
         };
-        setHistory((prev) => [newItem, ...prev]);
+        const newHistory = [newItem, ...history];
+        setHistory(newHistory);
+        setLatestPrompt(data.prompt);
         setIdea("");
       } else {
         setError(data.error || "कुछ गड़बड़ हुई।");
@@ -109,18 +113,36 @@ export default function Home() {
       <header
         style={{
           textAlign: "center",
-          padding: "1.5rem 1rem 1rem",
+          padding: "1rem",
           background: "white",
           boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
         }}
       >
-        <h1 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#4f46e5", margin: 0 }}>
+        <h1 style={{ fontSize: "1.7rem", fontWeight: "700", color: "#4f46e5", margin: 0 }}>
           ✨ PromptDost
         </h1>
-        <p style={{ color: "#64748b", marginTop: "0.25rem" }}>
+        <p style={{ color: "#64748b", marginTop: "0.25rem", fontSize: "0.95rem" }}>
           AI के लिए परफेक्ट प्रॉम्प्ट बनाएं
         </p>
       </header>
+
+      {/* Adsterra Ad Space - Top */}
+      <div
+        style={{
+          padding: "10px",
+          background: "#f8fafc",
+          textAlign: "center",
+          fontSize: "12px",
+          color: "#94a3b8",
+        }}
+      >
+        {/* 📌 यहाँ अपना Adsterra एड कोड डालें */}
+        {/* उदाहरण: <script src="https://..."></script> या <iframe ... /> */}
+        {/* अगर एड कोड नहीं है, तो यह सिर्फ एक स्पेस रहेगा */}
+        <div id="adsterra-top-ad" style={{ minHeight: "50px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <!-- ADSTERRA AD SPACE -->
+        </div>
+      </div>
 
       {/* Main Content */}
       <main style={{ padding: "1rem", maxWidth: "600px", margin: "0 auto" }}>
@@ -161,6 +183,59 @@ export default function Home() {
             >
               {loading ? "बना रहा है... 🤖" : "प्रॉम्प्ट बनाएं"}
             </button>
+
+            {/* Latest Prompt on Home */}
+            {latestPrompt && (
+              <div style={{ marginTop: "2rem" }}>
+                <h3 style={{ fontSize: "1.3rem", marginBottom: "12px" }}>आपका प्रॉम्प्ट:</h3>
+                <pre
+                  style={{
+                    background: "#f0f9ff",
+                    padding: "16px",
+                    borderRadius: "12px",
+                    border: "1px solid #bae6fd",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    fontSize: "15px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {latestPrompt}
+                </pre>
+                <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                  <button
+                    onClick={() => copyToClipboard(latestPrompt)}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      background: "#dbeafe",
+                      border: "1px solid #93c5fd",
+                      borderRadius: "12px",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    कॉपी ✅
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("history")}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      background: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "12px",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    इतिहास देखें 🕒
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -234,7 +309,6 @@ export default function Home() {
                       </button>
                       <button
                         onClick={() => {
-                          // WhatsApp share
                           const text = encodeURIComponent(item.prompt);
                           window.open(`https://wa.me/?text=${text}`, "_blank");
                         }}
@@ -255,6 +329,22 @@ export default function Home() {
                 ))}
               </div>
             )}
+
+            {/* Adsterra Ad Space - Bottom in History */}
+            <div
+              style={{
+                marginTop: "2rem",
+                padding: "10px",
+                background: "#f8fafc",
+                textAlign: "center",
+                fontSize: "12px",
+                color: "#94a3b8",
+              }}
+            >
+              <div id="adsterra-bottom-ad" style={{ minHeight: "50px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <!-- ADSTERRA AD SPACE -->
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -311,4 +401,4 @@ export default function Home() {
       </nav>
     </div>
   );
-                         }
+                }
