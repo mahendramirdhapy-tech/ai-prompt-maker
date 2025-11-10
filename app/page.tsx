@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +17,6 @@ export default function Home() {
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  // Load history from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("promptDostHistory");
     if (saved) {
@@ -30,7 +28,6 @@ export default function Home() {
     }
   }, []);
 
-  // Save history to localStorage
   useEffect(() => {
     localStorage.setItem("promptDostHistory", JSON.stringify(history));
   }, [history]);
@@ -109,7 +106,6 @@ export default function Home() {
         color: "#1e293b",
       }}
     >
-      {/* Header */}
       <header
         style={{
           textAlign: "center",
@@ -126,25 +122,6 @@ export default function Home() {
         </p>
       </header>
 
-      {/* Adsterra Ad Space - Top */}
-      <div
-        style={{
-          padding: "10px",
-          background: "#f8fafc",
-          textAlign: "center",
-          fontSize: "12px",
-          color: "#94a3b8",
-        }}
-      >
-        {/* 📌 यहाँ अपना Adsterra एड कोड डालें */}
-        {/* उदाहरण: <script src="https://..."></script> या <iframe ... /> */}
-        {/* अगर एड कोड नहीं है, तो यह सिर्फ एक स्पेस रहेगा */}
-        <div id="adsterra-top-ad" style={{ minHeight: "50px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <!-- ADSTERRA AD SPACE -->
-        </div>
-      </div>
-
-      {/* Main Content */}
       <main style={{ padding: "1rem", maxWidth: "600px", margin: "0 auto" }}>
         {activeTab === "home" && (
           <div>
@@ -184,7 +161,6 @@ export default function Home() {
               {loading ? "बना रहा है... 🤖" : "प्रॉम्प्ट बनाएं"}
             </button>
 
-            {/* Latest Prompt on Home */}
             {latestPrompt && (
               <div style={{ marginTop: "2rem" }}>
                 <h3 style={{ fontSize: "1.3rem", marginBottom: "12px" }}>आपका प्रॉम्प्ट:</h3>
@@ -329,27 +305,10 @@ export default function Home() {
                 ))}
               </div>
             )}
-
-            {/* Adsterra Ad Space - Bottom in History */}
-            <div
-              style={{
-                marginTop: "2rem",
-                padding: "10px",
-                background: "#f8fafc",
-                textAlign: "center",
-                fontSize: "12px",
-                color: "#94a3b8",
-              }}
-            >
-              <div id="adsterra-bottom-ad" style={{ minHeight: "50px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <!-- ADSTERRA AD SPACE -->
-              </div>
-            </div>
           </div>
         )}
       </main>
 
-      {/* Bottom Navigation */}
       <nav
         style={{
           position: "fixed",
@@ -401,4 +360,4 @@ export default function Home() {
       </nav>
     </div>
   );
-        }
+                             }
