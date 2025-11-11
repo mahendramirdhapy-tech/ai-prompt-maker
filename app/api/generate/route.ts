@@ -15,13 +15,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const optimizedPrompt = await callWithFallback(
-      idea.trim(),
-      referer || "https://prompt-dost.vercel.app"
-    );
-    return Response.json({ prompt: optimizedPrompt });
+    const prompt = await callWithFallback(idea.trim(), referer || "https://prompt-dost.vercel.app");
+    return Response.json({ prompt });
   } catch (error: any) {
-    console.error("API Error:", error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
