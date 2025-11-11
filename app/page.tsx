@@ -98,7 +98,6 @@ export default function Home() {
   return (
     <div
       style={{
-        fontFamily: "system-ui, sans-serif",
         background: "linear-gradient(to bottom, #f0f9ff, #e0f2fe)",
         minHeight: "100vh",
         paddingBottom: "70px",
