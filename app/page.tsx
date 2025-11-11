@@ -15,23 +15,20 @@
     >
       {latestPrompt}
     </pre>
-    <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
-      <button
-        onClick={() => copyToClipboard(latestPrompt)}
-        style={{
-          flex: 1,
-          padding: "10px",
-          background: "#dbeafe",
-          border: "1px solid #93c5fd",
-          borderRadius: "12px",
-          fontSize: "15px",
-          fontWeight: "600",
-          cursor: "pointer",
-        }}
-      >
-        कॉपी ✅
-      </button>
-      {/* ❌ "इतिहास देखें" बटन हटा दिया गया */}
-    </div>
+    <button
+      onClick={() => copyToClipboard(latestPrompt)}
+      style={{
+        width: "100%",
+        padding: "12px",
+        background: "#dbeafe",
+        border: "1px solid #93c5fd",
+        borderRadius: "12px",
+        fontSize: "16px",
+        fontWeight: "600",
+        cursor: "pointer",
+      }}
+    >
+      कॉपी ✅
+    </button>
   </div>
 )}
