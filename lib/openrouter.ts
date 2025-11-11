@@ -37,19 +37,13 @@ export async function callWithFallback(userIdea: string, refererUrl: string): Pr
         timeout: 10000
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.warn(`Model ${model} failed: ${errorText}`);
-        continue;
-      }
+      if (!response.ok) continue;
 
       const data = await response.json();
       const content = data?.choices?.[0]?.message?.content?.trim();
-      if (content) {
-        return content;
-      }
-    } catch (error: any) {
-      console.warn(`Model ${model} error:`, error.message);
+      if (content) return content;
+    } catch {
+      continue;
     }
   }
 
